@@ -8,7 +8,7 @@ Hosted at `https://mcp-exactonline.iwebdevelopment.com`. Authorize in your brows
 
 **Get started in about 2 minutes.** See the [installation guide](https://www.iwebdevelopment.com/kennisbank/hoe-werkt-de-exact-online-ai-mcp-koppeling) to connect your administration.
 
-[![Add to Cursor](https://img.shields.io/badge/Add_to-Cursor-000?logo=cursor)](https://cursor.com/install-mcp?name=exact-online&config=eyJ1cmwiOiJodHRwczovL21jcC1leGFjdG9ubGluZS5pd2ViZGV2ZWxvcG1lbnQuY29tL21jcCJ9) [![Install in VS Code](https://img.shields.io/badge/Install_in-VS_Code-007ACC?logo=visualstudiocode)](https://insiders.vscode.dev/redirect/mcp/install?name=exact-online&config=%7B%22name%22%3A%22exact-online%22%2C%22type%22%3A%22http%22%2C%22url%22%3A%22https%3A%2F%2Fmcp-exactonline.iwebdevelopment.com%2Fmcp%22%7D)
+[![Add to Cursor](https://img.shields.io/badge/Add_to-Cursor-000?logo=cursor)](https://cursor.com/install-mcp?name=exact-online&config=eyJ1cmwiOiJodHRwczovL21jcC1leGFjdG9ubGluZS5pd2ViZGV2ZWxvcG1lbnQuY29tIn0%3D) [![Install in VS Code](https://img.shields.io/badge/Install_in-VS_Code-007ACC?logo=visualstudiocode)](https://insiders.vscode.dev/redirect/mcp/install?name=exact-online&config=%7B%22name%22%3A%22exact-online%22%2C%22type%22%3A%22http%22%2C%22url%22%3A%22https%3A%2F%2Fmcp-exactonline.iwebdevelopment.com%22%7D)
 
 Works with Claude on all plans (including the free plan); also with ChatGPT (Developer Mode, paid plans), Perplexity (Pro/Max/Enterprise), GitHub Copilot in VS Code, Cursor and other developer tools. Availability and setup differ per client. See the [client compatibility matrix](#client-compatibility) below.
 
@@ -53,7 +53,7 @@ For a legacy `mcp-remote` fallback, see `examples/claude-desktop-config.json` (o
 
 The last command signs you in.
 
-Prefer to add it manually? `claude mcp add --transport http exact-online https://mcp-exactonline.iwebdevelopment.com/mcp`
+Prefer to add it manually? `claude mcp add --transport http exact-online https://mcp-exactonline.iwebdevelopment.com`
 
 ### Other clients
 
@@ -68,8 +68,8 @@ See the [full documentation](https://iwebdevnl.github.io/exact-online-ai-connect
 | Client | Remote MCP? | Plan / mode | How to add |
 |---|---|---|---|
 | Claude (web / Desktop) | Yes, full read + write | All plans incl. **Free** (Free = 1 custom connector); Team/Ent = owner adds | Settings → Connectors → Add custom connector → base URL |
-| Claude Code | Yes | Claude Code itself needs Pro/Max or API billing | `claude mcp add --transport http exact-online https://…/mcp`; OAuth via `/mcp` |
-| GitHub Copilot (VS Code) | Yes | All Copilot plans; Business/Enterprise need an admin "MCP servers" policy (off by default) | `.vscode/mcp.json` with `"type":"http"` + the `/mcp` URL |
+| Claude Code | Yes | Claude Code itself needs Pro/Max or API billing | `claude mcp add --transport http exact-online https://…`; OAuth in the browser |
+| GitHub Copilot (VS Code) | Yes | All Copilot plans; Business/Enterprise need an admin "MCP servers" policy (off by default) | `.vscode/mcp.json` with `"type":"http"` + the server URL |
 | Cursor | Yes | No documented plan gate | Settings → Tools & MCP → New MCP Server (`url`), or the Add-to-Cursor badge |
 | Cline | Yes | Free (open-source) | mcp.json `"type":"streamableHttp"` (camelCase) |
 | Windsurf | Yes | Enterprise may gate | Settings → Tools → Add Server (`serverUrl`) |

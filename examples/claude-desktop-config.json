@@ -2,7 +2,7 @@
   "mcpServers": {
     "exact-online": {
       "command": "npx",
-      "args": ["-y", "mcp-remote", "https://mcp-exactonline.iwebdevelopment.com/mcp"]
+      "args": ["-y", "mcp-remote", "https://mcp-exactonline.iwebdevelopment.com"]
     }
   }
 }

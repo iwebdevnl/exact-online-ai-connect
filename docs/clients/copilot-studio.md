@@ -7,7 +7,7 @@ This is a heavier, maker-oriented setup compared to the other clients, and requi
 ## Steps
 
 1. In Copilot Studio, create or open an agent.
-2. Add Exact Online AI Connect as an MCP server (URL: `https://mcp-exactonline.iwebdevelopment.com/mcp`).
+2. Add Exact Online AI Connect as an MCP server (URL: `https://mcp-exactonline.iwebdevelopment.com`).
 3. Publish the agent so end users in your tenant can use it.
 4. Each user authorizes with their own Exact Online account on first use.
 

@@ -7,7 +7,7 @@ GitHub Copilot in agent mode (VS Code 1.101 or later) can call remote MCP server
 1. In your project (or user settings), create `.vscode/mcp.json`:
 
    ```json
-   { "servers": { "exact-online": { "type": "http", "url": "https://mcp-exactonline.iwebdevelopment.com/mcp" } } }
+   { "servers": { "exact-online": { "type": "http", "url": "https://mcp-exactonline.iwebdevelopment.com" } } }
    ```
 
 2. VS Code prompts you to start the server; authorize with your Exact Online account in the browser.

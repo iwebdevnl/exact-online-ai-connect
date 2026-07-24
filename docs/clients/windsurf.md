@@ -7,7 +7,7 @@ Windsurf connects to remote MCP servers through its Tools settings, or by editin
 1. Go to **Settings → Tools → Add Server**, or edit the raw config:
 
    ```json
-   { "mcpServers": { "exact-online": { "serverUrl": "https://mcp-exactonline.iwebdevelopment.com/mcp" } } }
+   { "mcpServers": { "exact-online": { "serverUrl": "https://mcp-exactonline.iwebdevelopment.com" } } }
    ```
 
 2. Authorize with your Exact Online account when Windsurf opens the browser.

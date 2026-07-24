@@ -7,7 +7,7 @@ Cursor connects to remote MCP servers by URL. Add Exact Online AI Connect throug
 1. Go to **Settings → Tools & MCP → New MCP Server**, or edit `.cursor/mcp.json`:
 
    ```json
-   { "mcpServers": { "exact-online": { "url": "https://mcp-exactonline.iwebdevelopment.com/mcp" } } }
+   { "mcpServers": { "exact-online": { "url": "https://mcp-exactonline.iwebdevelopment.com" } } }
    ```
 
 2. On first connect, Cursor opens your browser for OAuth authorization.

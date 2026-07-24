@@ -2,7 +2,7 @@
   "mcpServers": {
     "exact-online": {
       "type": "http",
-      "url": "https://mcp-exactonline.iwebdevelopment.com/mcp"
+      "url": "https://mcp-exactonline.iwebdevelopment.com"
     }
   }
 }
