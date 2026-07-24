@@ -1,0 +1,11 @@
+{
+  "name": "iwebdevnl-exact",
+  "owner": { "name": "iWebDevelopment", "email": "support@iwebdevelopment.com" },
+  "plugins": [
+    {
+      "name": "exact-online",
+      "source": "./plugins/exact-online",
+      "description": "Exact Online AI Connect: Exact Online via MCP"
+    }
+  ]
+}

@@ -1,0 +1,33 @@
+site_name: Exact Online AI Connect
+site_url: https://iwebdevnl.github.io/exact-online-ai-connect/
+theme:
+  name: material
+  palette:
+    - scheme: default
+      toggle: { icon: material/weather-night, name: Dark }
+    - scheme: slate
+      toggle: { icon: material/weather-sunny, name: Light }
+nav:
+  - Home: index.md
+  - Architecture: architecture.md
+  - Example prompts: prompts.md
+  - Clients:
+      - Claude: clients/claude.md
+      - ChatGPT: clients/chatgpt.md
+      - Cursor: clients/cursor.md
+      - VS Code (GitHub Copilot): clients/vscode.md
+      - Cline: clients/cline.md
+      - Windsurf: clients/windsurf.md
+      - Zed: clients/zed.md
+      - Perplexity: clients/perplexity.md
+      - Microsoft Copilot Studio: clients/copilot-studio.md
+  - Plans & quotas: tiers-and-quotas.md
+  - FAQ: faq.md
+  - Security & privacy: security-and-privacy.md
+markdown_extensions:
+  - admonition
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format

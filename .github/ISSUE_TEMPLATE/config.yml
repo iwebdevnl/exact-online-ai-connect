@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Security vulnerability
+    url: https://github.com/iwebdevnl/exact-online-ai-connect/security/policy
+    about: Do NOT file security issues here. See SECURITY.md and email support@iwebdevelopment.com
+  - name: Product support and sales
+    url: https://www.iwebdevelopment.com/exact-online/ai-mcp-koppeling
+    about: Questions about the subscription, trial, or your administration

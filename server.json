@@ -1,0 +1,12 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-07-09/server.schema.json",
+  "name": "com.iwebdevelopment/exact-online",
+  "description": "Exact Online AI Connect: hosted MCP server for Exact Online.",
+  "version": "1.0.0",
+  "remotes": [
+    {
+      "type": "streamable-http",
+      "url": "https://mcp-exactonline.iwebdevelopment.com/mcp"
+    }
+  ]
+}

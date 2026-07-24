@@ -1,0 +1,20 @@
+name: validate
+on:
+  pull_request:
+  push:
+    branches: [main]
+jobs:
+  json:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate JSON files parse
+        run: |
+          for f in $(git ls-files '*.json'); do
+            node -e "JSON.parse(require('fs').readFileSync('$f','utf8'))" && echo "OK $f" || exit 1
+          done
+      - name: Guard forbidden claims across docs and skills
+        run: |
+          if git ls-files '*.md' | grep -v '^\.github/' | xargs grep -niE "every (plan|client)|any client|only the analytics plan stores|SOC ?2|ISO ?42001|BigQuery"; then
+            echo "Forbidden claim found"; exit 1
+          fi

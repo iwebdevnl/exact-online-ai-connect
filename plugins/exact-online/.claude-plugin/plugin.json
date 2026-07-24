@@ -1,0 +1,10 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
+  "name": "exact-online",
+  "displayName": "Exact Online AI Connect",
+  "description": "Connect your AI assistant to your Exact Online administration.",
+  "author": { "name": "iWebDevelopment", "url": "https://www.iwebdevelopment.com" },
+  "homepage": "https://www.iwebdevelopment.com/exact-online/ai-mcp-koppeling",
+  "license": "MIT",
+  "keywords": ["exact-online", "mcp", "erp", "accounting"]
+}

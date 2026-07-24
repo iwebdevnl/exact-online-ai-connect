@@ -1,0 +1,33 @@
+{
+  "_comment": "Voorbeeld-invoer voor scripts/build_cashflow_workbook.py. Lever uitsluitend de ruwe mutatie per rekeningtype per maand aan; het script en de Excel-formules doen alle berekeningen. 'type' is het Exact Online GLAccount.Type (string). 'mutatie' is AmountDC (debet positief, credit negatief). De optionele velden open_*_totaal en voorraad_eindstand verbeteren de KPI's; debiteuren/crediteuren-lijsten vullen de ouderdomstabbladen.",
+  "bedrijf": "Voorbeeld BV",
+  "administratie": "123",
+  "valuta": "EUR",
+  "jaar": 2026,
+  "periode_label": "2026 (t/m juni)",
+  "peildatum": "2026-06-30",
+  "beginsaldo_liquide": 25000.0,
+  "beginsaldo_bevestigd": false,
+  "voorraad_eindstand": 18000.0,
+  "open_debiteuren_totaal": 42000.0,
+  "open_crediteuren_totaal": 16000.0,
+  "debiteuren": [
+    {"naam": "Klant A BV", "bedrag": 12000.0, "vervaldatum": "2026-06-15"},
+    {"naam": "Klant B BV", "bedrag": 30000.0, "vervaldatum": "2026-07-10"}
+  ],
+  "crediteuren": [
+    {"naam": "Leverancier X", "bedrag": 16000.0, "vervaldatum": "2026-06-20"}
+  ],
+  "matrix": [
+    {"type": "110", "balance_type": "W", "maand": 1, "mutatie": -50000.0},
+    {"type": "111", "balance_type": "W", "maand": 1, "mutatie": 20000.0},
+    {"type": "125", "balance_type": "W", "maand": 1, "mutatie": 12000.0},
+    {"type": "122", "balance_type": "W", "maand": 1, "mutatie": 1500.0},
+    {"type": "12", "balance_type": "B", "maand": 1, "mutatie": 9000.0},
+    {"type": "20", "balance_type": "B", "maand": 1, "mutatie": 7500.0},
+    {"type": "35", "balance_type": "B", "maand": 1, "mutatie": -1500.0},
+    {"type": "30", "balance_type": "B", "maand": 1, "mutatie": 8000.0},
+    {"type": "12", "balance_type": "B", "maand": 1, "mutatie": -8000.0},
+    {"type": "55", "balance_type": "B", "maand": 1, "mutatie": -6500.0}
+  ]
+}
