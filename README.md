@@ -59,7 +59,7 @@ Prefer to add it manually? `claude mcp add --transport http exact-online https:/
 
 Exact Online AI Connect is a standard remote MCP server, so most MCP-capable clients (ChatGPT, Perplexity, GitHub Copilot, Cursor, Cline, Windsurf, Zed, and others) can add it by URL. Setup steps and plan requirements vary per client, see the matrix below.
 
-See the [full documentation](https://iwebdevnl.github.io/exact-online-ai-connect/) for per-client setup.
+See the [full documentation](https://www.iwebdevelopment.com/kennisbank/hoe-werkt-de-exact-online-ai-mcp-koppeling) for per-client setup.
 
 ## Client compatibility
 
