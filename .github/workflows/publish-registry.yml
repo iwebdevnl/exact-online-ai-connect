@@ -22,6 +22,10 @@ jobs:
           tar -xzf mcp-publisher.tar.gz mcp-publisher
       - name: Login and publish server.json
         run: |
+          if [ -z "${MCP_REGISTRY_DNS_KEY}" ]; then
+            echo "MCP_REGISTRY_DNS_KEY not set — skipping registry publish (published manually with mcp-publisher)."
+            exit 0
+          fi
           ./mcp-publisher login dns --domain iwebdevelopment.com --private-key "${MCP_REGISTRY_DNS_KEY}"
           ./mcp-publisher publish
         env:
