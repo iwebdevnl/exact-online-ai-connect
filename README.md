@@ -46,7 +46,7 @@ For a legacy `mcp-remote` fallback, see `examples/claude-desktop-config.json` (o
 
 ```
 /plugin marketplace add iwebdevnl/exact-online-ai-connect
-/plugin install exact-online@iwebdevnl-exact
+/plugin install exact-online-ai-connect@iwebdevnl-exact
 /reload-plugins
 /mcp
 ```

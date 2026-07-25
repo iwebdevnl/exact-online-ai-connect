@@ -1,7 +1,9 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
-  "name": "exact-online",
+  "name": "exact-online-ai-connect",
   "displayName": "Exact Online AI Connect",
+  "version": "1.0.0",
+  "defaultEnabled": false,
   "description": "Connect your AI assistant to your Exact Online administration.",
   "author": { "name": "iWebDevelopment", "url": "https://www.iwebdevelopment.com" },
   "homepage": "https://www.iwebdevelopment.com/exact-online/ai-mcp-koppeling",

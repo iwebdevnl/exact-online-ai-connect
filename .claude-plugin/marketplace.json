@@ -3,7 +3,7 @@
   "owner": { "name": "iWebDevelopment", "email": "support@iwebdevelopment.com" },
   "plugins": [
     {
-      "name": "exact-online",
+      "name": "exact-online-ai-connect",
       "source": "./plugins/exact-online",
       "description": "Exact Online AI Connect: Exact Online via MCP"
     }
