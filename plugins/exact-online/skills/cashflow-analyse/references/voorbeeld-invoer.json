@@ -1,5 +1,5 @@
 {
-  "_comment": "Voorbeeld-invoer voor scripts/build_cashflow_workbook.py. Lever uitsluitend de ruwe mutatie per rekeningtype per maand aan; het script en de Excel-formules doen alle berekeningen. 'type' is het Exact Online GLAccount.Type (string). 'mutatie' is AmountDC (debet positief, credit negatief). De optionele velden open_*_totaal en voorraad_eindstand verbeteren de KPI's; debiteuren/crediteuren-lijsten vullen de ouderdomstabbladen.",
+  "_comment": "Voorbeeld-invoer voor ${CLAUDE_PLUGIN_ROOT}/skills/cashflow-analyse/scripts/build_cashflow_workbook.py. Lever uitsluitend de ruwe mutatie per rekeningtype per maand aan; het script en de Excel-formules doen alle berekeningen. 'type' is het Exact Online GLAccount.Type (string). 'mutatie' is AmountDC (debet positief, credit negatief). De optionele velden open_*_totaal en voorraad_eindstand verbeteren de KPI's; debiteuren/crediteuren-lijsten vullen de ouderdomstabbladen.",
   "bedrijf": "Voorbeeld BV",
   "administratie": "123",
   "valuta": "EUR",
@@ -24,7 +24,7 @@
     {"type": "125", "balance_type": "W", "maand": 1, "mutatie": 12000.0},
     {"type": "122", "balance_type": "W", "maand": 1, "mutatie": 1500.0},
     {"type": "12", "balance_type": "B", "maand": 1, "mutatie": 9000.0},
-    {"type": "20", "balance_type": "B", "maand": 1, "mutatie": 7500.0},
+    {"type": "20", "balance_type": "B", "maand": 1, "mutatie": 15500.0},
     {"type": "35", "balance_type": "B", "maand": 1, "mutatie": -1500.0},
     {"type": "30", "balance_type": "B", "maand": 1, "mutatie": 8000.0},
     {"type": "12", "balance_type": "B", "maand": 1, "mutatie": -8000.0},

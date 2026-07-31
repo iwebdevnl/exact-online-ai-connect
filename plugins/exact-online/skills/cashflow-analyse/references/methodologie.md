@@ -1,4 +1,4 @@
-# Methodologie — wat een goede cashflow-analyse moet bevatten
+# Methodologie: wat een goede cashflow-analyse moet bevatten
 
 Onderbouwing van de opbouw, gebaseerd op de standaardpraktijk voor het kasstroomoverzicht
 (operationeel/investerings-/financieringsactiviteiten; directe vs. indirecte methode) en de
@@ -7,16 +7,16 @@ gangbare werkkapitaal- en kasstroom-KPI's.
 ## 1. Een goede analyse heeft drie activiteiten en twee methoden
 
 **Drie activiteiten** (verplichte indeling van elk kasstroomoverzicht):
-- **Operationeel** — kasstroom uit de dagelijkse bedrijfsvoering (resultaat + non-cash posten +
+- **Operationeel**: kasstroom uit de dagelijkse bedrijfsvoering (resultaat + non-cash posten +
   mutaties in werkkapitaal).
-- **Investering** — aan- en verkoop van vaste activa en overige langlopende activa.
-- **Financiering** — eigen vermogen (stortingen, uitkeringen) en leningen (opname, aflossing).
+- **Investering**: aan- en verkoop van vaste activa en overige langlopende activa.
+- **Financiering**: eigen vermogen (stortingen, uitkeringen) en leningen (opname, aflossing).
 
 **Twee methoden** (verschillen alleen in de operationele sectie; investering en financiering zijn
 identiek):
-- **Directe methode** — werkelijke ontvangsten en uitgaven per categorie. Intuïtief voor pure
+- **Directe methode**: werkelijke ontvangsten en uitgaven per categorie. Intuïtief voor pure
   liquiditeit.
-- **Indirecte methode** — begint bij het nettoresultaat en corrigeert voor non-cash posten en
+- **Indirecte methode**: begint bij het nettoresultaat en corrigeert voor non-cash posten en
   werkkapitaalmutaties. Meest gebruikt en geeft het meeste inzicht in de samenhang met balans
   en W&V.
 
@@ -40,7 +40,7 @@ Tekencontrole: omzet staat credit (−AmountDC) → kaseffect +; kosten staan de
 kaseffect −; een hogere debiteurenstand (+AmountDC) → kaseffect − (geld zit vast); een hogere
 crediteurenstand (−AmountDC) → kaseffect + (betaling uitgesteld).
 
-## 3. Indirecte methode — opbouw
+## 3. Indirecte methode, opbouw
 
 ```
 Nettoresultaat                                    = − Σ kaseffect omkeren? nee: = − Σ mutatie(W)
@@ -69,7 +69,7 @@ In de praktijk hoeft niets handmatig: bucket elke rekening op `Type`, neem kasef
 en tel per bucket op. De identiteit garandeert dat het totaal sluit; alleen de verdeling tussen
 operationeel en investering is conventie-afhankelijk (zie afschrijving in de classificatie).
 
-## 4. Directe methode — afgeleid en sluitend
+## 4. Directe methode, afgeleid en sluitend
 
 De werkelijke geldstromen per categorie worden afgeleid uit de resultaatposten, gecorrigeerd
 voor de bijbehorende werkkapitaalmutatie. Dit sluit per definitie aan op de operationele
@@ -120,5 +120,5 @@ betaaltermijnen heronderhandelen, investering faseren).
 
 Een analyse mag een korte doorkijk geven, maar de gedetailleerde 13-weeks liquiditeitsprognose
 is een aparte, diepere exercitie. Houd het hier bij: run-rate van de operationele kasstroom
-(laatste 3–6 maanden) + zekere openstaande posten op vervaldatum, één base-scenario, en een
+(laatste 3 tot 6 maanden) + zekere openstaande posten op vervaldatum, één base-scenario, en een
 markering wanneer het saldo onder een veilige buffer komt. Label het expliciet als indicatief.

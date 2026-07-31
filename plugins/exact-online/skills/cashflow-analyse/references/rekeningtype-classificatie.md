@@ -2,7 +2,9 @@
 
 Dit is de **officiële, volledige** `GLAccount.Type`-lijst (uit het entiteitsschema). Deze codes
 zijn platform-breed identiek in elke administratie. Classificeer hierop, niet op rekeningnummer
-of -naam. De generator (`scripts/build_cashflow_workbook.py`) bevat exact dezelfde map.
+of -naam. De generator
+(`${CLAUDE_PLUGIN_ROOT}/skills/cashflow-analyse/scripts/build_cashflow_workbook.py`) bevat exact
+dezelfde map.
 
 Kasvuistregel: **kaseffect = − mutatie(AmountDC)** voor elke niet-liquide rekening.
 
@@ -12,22 +14,22 @@ Kasvuistregel: **kaseffect = − mutatie(AmountDC)** voor elke niet-liquide reke
 | 12 | Bank | B | Liquide middelen | Bank |
 | 14 | Credit card | B | Liquide middelen | Creditcard |
 | 16 | Payment services | B | Liquide middelen | Payment service (PSP) |
-| 20 | Accounts receivable | B | Operationeel | Werkkapitaal — debiteuren |
-| 21 | Prepayment accounts receivable | B | Operationeel | Werkkapitaal — vooruitbetaald aan debiteuren |
-| 22 | Accounts payable | B | Operationeel | Werkkapitaal — crediteuren |
-| 24 | VAT | B | Operationeel | Werkkapitaal — btw |
-| 25 | Employees payable | B | Operationeel | Werkkapitaal — personeel te betalen |
-| 26 | Prepaid expenses | B | Operationeel | Werkkapitaal — vooruitbetaalde kosten |
-| 27 | Accrued expenses | B | Operationeel | Werkkapitaal — nog te betalen kosten |
-| 29 | Income taxes payable | B | Operationeel | Werkkapitaal — vennootschapsbelasting te betalen |
-| 40 | Inventory | B | Operationeel | Werkkapitaal — voorraad |
-| 100 | Tax payable | B | Operationeel | Werkkapitaal — belasting te betalen |
+| 20 | Accounts receivable | B | Operationeel | Werkkapitaal: debiteuren |
+| 21 | Prepayment accounts receivable | B | Operationeel | Werkkapitaal: vooruitbetaald aan debiteuren |
+| 22 | Accounts payable | B | Operationeel | Werkkapitaal: crediteuren |
+| 24 | VAT | B | Operationeel | Werkkapitaal: btw |
+| 25 | Employees payable | B | Operationeel | Werkkapitaal: personeel te betalen |
+| 26 | Prepaid expenses | B | Operationeel | Werkkapitaal: vooruitbetaalde kosten |
+| 27 | Accrued expenses | B | Operationeel | Werkkapitaal: nog te betalen kosten |
+| 29 | Income taxes payable | B | Operationeel | Werkkapitaal: vennootschapsbelasting te betalen |
+| 40 | Inventory | B | Operationeel | Werkkapitaal: voorraad |
+| 100 | Tax payable | B | Operationeel | Werkkapitaal: belasting te betalen |
 | 35 | Accumulated depreciation | B | Operationeel | Afschrijving (terugname, non-cash) |
 | 90 | General | B | Operationeel | Overig werkkapitaal (controleer) |
 | 30 | Fixed assets | B | Investering | (Des)investering vaste activa |
 | 32 | Other assets | B | Investering | Overige langlopende activa |
-| 50 | Capital stock | B | Financiering | Eigen vermogen — kapitaal |
-| 52 | Retained earnings | B | Financiering | Eigen vermogen — winstreserve/uitkering |
+| 50 | Capital stock | B | Financiering | Eigen vermogen: kapitaal |
+| 52 | Retained earnings | B | Financiering | Eigen vermogen: winstreserve/uitkering |
 | 55 | Long term debt | B | Financiering | Langlopende schuld |
 | 60 | Current portion of debt | B | Financiering | Kortlopend deel langlopende schuld |
 | 110 | Revenue | W | Operationeel (resultaat) | Omzet |
@@ -63,7 +65,7 @@ Kasvuistregel: **kaseffect = − mutatie(AmountDC)** voor elke niet-liquide reke
   mutaties: ze kunnen investering of financiering betreffen.
 - **Rente (160) en belasting (150).** Standaard operationeel. Wil de gebruiker een IFRS-stijl
   presentatie, dan kunnen rente en belasting als aparte regels of secties getoond worden.
-- **Technisch (300–302).** Jaareinde-rubriceringen; deze zijn non-cash en moeten worden
+- **Technisch (300 tot 302).** Jaareinde-rubriceringen; deze zijn non-cash en moeten worden
   uitgesloten zodat ze de kasstroom niet vervuilen.
 - **Onbekend Type.** Komt een `Type` voor dat hier niet staat, classificeer als "Niet
   geclassificeerd", neem het mee in de aansluitcontrole en meld het expliciet aan de gebruiker.

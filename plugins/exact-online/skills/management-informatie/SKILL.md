@@ -1,554 +1,330 @@
 ---
 name: management-informatie
 description: >
-  Management dashboard voor ondernemers in Exact Online. P&L, omzet per klant/categorie,
-  bruto marge, cashflow, periode-vergelijkingen (QoQ, YoY), en commerciële KPI's.
-  Bedragen altijd via analyze_data op TransactionLines, nooit SalesInvoices.
-  Triggers: 'management informatie', 'P&L', 'winst en verlies', 'omzet overzicht',
-  'omzet per klant', 'marge', 'cashflow', 'dashboard', 'KPI', 'stuurinformatie',
-  'hoe staat het er financieel voor', 'wat is mijn omzet', 'financieel overzicht',
-  'vergelijken met vorig jaar', 'kwartaalvergelijking', 'QoQ', 'YoY',
-  'recurring revenue', 'klantconcentratie', 'groeiers en dalers'.
-  Werkt met Exact Online MCP (analyze_data TransactionLines + GLAccounts JOIN,
-  ReportingBalance, Cashflow/Receivables, Cashflow/Payments).
+  Deze skill moet gebruikt worden bij vragen om commerciële stuurinformatie uit Exact
+  Online: dashboard, KPI's, omzet per klant of categorie, marge, cashflow-positie of een
+  periodevergelijking. Triggers: 'management informatie', 'dashboard', 'KPI',
+  'stuurinformatie', 'omzet per klant', 'klantconcentratie', 'groeiers en dalers',
+  'recurring revenue', 'marge', 'cashflow', 'vergelijken met vorig jaar', 'QoQ', 'YoY'.
+  Een formele resultatenrekening hoort bij resultatenrekening-analyse.
 ---
 
 # Management Informatie
 
-Actuele stuurinformatie voor ondernemers — zonder Excel-exports. De ingebouwde rapportage
-van Exact Online is goed voor de boekhouder, maar te statisch voor de ondernemer die
-dagelijks wil weten hoe het bedrijf ervoor staat.
+Actuele stuurinformatie voor ondernemers, zonder Excel-exports. De ingebouwde rapportage van
+Exact Online is goed voor de boekhouder, maar te statisch voor de ondernemer die dagelijks
+wil weten hoe het bedrijf ervoor staat.
 
-## Databronnen — Wanneer welke tool gebruiken
+## Databronnen
 
 ### Fundamentele regel: bedragen altijd via TransactionLines
 
-Voor alle omzet-, kosten- en bedraganalyses geldt: gebruik **`analyze_data`** op
-**`Financial/Transactionlines`** als primaire databron, met een JOIN op
-**`Financial/GLAccounts`** om te filteren op rekeningtype.
+Voor alle omzet-, kosten- en bedraganalyses geldt: gebruik `analyze_data` op
+`Financial/TransactionLines` als primaire databron, met een JOIN op `Financial/GLAccounts`
+om te filteren op rekeningtype.
 
-De reden: TransactionLines bevat de daadwerkelijk geboekte bedragen (excl. BTW, incl.
-creditnota-correcties). Dit is de enige betrouwbare bron voor financiële analyses.
-SalesInvoices bevat bruto factuurbedragen die niet aansluiten op de boekhouding en
-mist boekingen die niet via verkoopfacturen lopen (memoriaalboekingen, correcties, etc.).
-
-**SalesInvoices** mag alleen gebruikt worden voor metadata die niet in TransactionLines zit:
-klantnamen bij factuurdetails, factuur-aantallen, of als er gefilterd moet worden op
-velden die alleen in SalesInvoices bestaan (zoals OrderedByName). Maar zelfs dan: de
-bedragen die je uit SalesInvoices haalt zijn indicatief, niet leidend.
+TransactionLines bevat de daadwerkelijk geboekte bedragen (excl. BTW, incl.
+creditnota-correcties). SalesInvoices bevat bruto factuurbedragen die niet aansluiten op de
+boekhouding en mist memoriaalboekingen en correcties. Gebruik SalesInvoices alleen voor
+metadata die niet in TransactionLines zit, zoals factuur-aantallen, en behandel die bedragen
+als indicatief.
 
 ### Toolkeuze
 
 | Doel | Tool | Tabel |
 |------|------|-------|
-| Omzet/kosten aggregaties | `analyze_data` | `Financial/Transactionlines` + JOIN `Financial/GLAccounts` |
-| Periode-vergelijkingen (QoQ, YoY) | `analyze_data` | `Financial/Transactionlines` + JOIN `Financial/GLAccounts` |
-| P&L / ReportingBalance | `execute_operation` | `Financial/ReportingBalance` |
-| Cashflow / debiteuren | `execute_operation` | `Read/ReceivablesList` |
-| Cashflow / crediteuren | `execute_operation` | `Bulk/Cashflow/Payments` |
-| Factuur-aantallen (metadata) | `analyze_data` | `Salesinvoice/SalesInvoices` |
-| Klant-niveau omzet | `analyze_data` | `Financial/Transactionlines` (AccountName veld) |
+| Omzet- en kostenaggregaties | `analyze_data` | `Financial/TransactionLines` + JOIN `Financial/GLAccounts` |
+| Periodevergelijkingen (QoQ, YoY) | `analyze_data` | `Financial/TransactionLines` + JOIN `Financial/GLAccounts` |
+| Klant-niveau omzet | `analyze_data` | `Financial/TransactionLines` (veld `AccountName`) |
+| Factuur-aantallen (metadata) | `analyze_data` | `SalesInvoice/SalesInvoices` |
+| Grootboeksaldi per periode | `read_operation` | `Financial/ReportingBalance` |
+| Cashflow, debiteuren | `read_operation` | `Read/ReceivablesList` |
+| Cashflow, crediteuren | `read_operation` | `Bulk/Cashflow/Payments` |
 
-### Beschikbaarheid controleren
+`read_operation` doet alleen GET en geeft maximaal 60 records per call. Op Bulk-endpoints
+werkt `skip` niet: pagineer daar met `page_token` uit `next_page.page_token`.
 
-Voordat je `analyze_data` gebruikt, check met `list_available_tables` of de tabel
-gesynchroniseerd is. Let op de `sync_status`:
-- `idle` = data compleet, veilig te gebruiken
-- `syncing` = import bezig, resultaten kunnen incompleet zijn — waarschuw de gebruiker
+### Beschikbaarheid en abonnement
 
-### GLAccount.Type — filter altijd op type, niet op code-ranges
+`analyze_data` en `list_available_tables` bestaan alleen op het Trial- en
+Analytics-abonnement. Op het Essentials-abonnement zijn de modules 3 tot en met 6 hieronder
+niet uitvoerbaar zoals beschreven: val dan terug op REST-rapportages via `read_operation`
+(`Financial/ReportingBalance` per periode) en meld de gebruiker dat de aggregaties beperkter
+zijn.
+
+Check vóór gebruik met `list_available_tables` of de tabel gesynchroniseerd is. Bij
+`sync_status = syncing` loopt de import nog en kunnen resultaten incompleet zijn: waarschuw
+dan de gebruiker.
+
+### GLAccount.Type: filter altijd op type, nooit op code-ranges
 
 Rekeningnummers variëren per administratie. Sommige administraties hebben omzet op 8000+,
 andere op 4000+. Filter daarom altijd op `GLAccount.Type` via de JOIN:
 
-| GLAccount.Type | Categorie | Beschrijving |
-|----------------|-----------|--------------|
-| 110 | Omzet | Netto-omzet uit normale bedrijfsactiviteiten |
-| 111 | Kostprijs omzet | Inkoop-/directe kosten (COGS) |
-| 120 | Overige kosten | Overige bedrijfskosten |
-| 121 | Verkoop/algemeen/beheer | Verkoop-, algemene en beheerkosten (SG&A) |
-| 122 | Afschrijvingskosten | Afschrijvingen op vaste activa |
-| 125 | Personeelskosten | Lonen, sociale lasten, pensioen |
-| 130 | Bijzondere lasten | Buitengewone/incidentele lasten |
-| 140 | Bijzondere baten | Buitengewone/incidentele baten |
-| 150 | Belasting over resultaat | Vennootschapsbelasting op het resultaat |
-| 160 | Rentebaten/-lasten | Financiële baten en lasten |
+| GLAccount.Type | Categorie |
+|----------------|-----------|
+| 110 | Omzet |
+| 111 | Kostprijs omzet (COGS) |
+| 120 | Overige kosten |
+| 121 | Verkoop-, algemene en beheerkosten (SG&A) |
+| 122 | Afschrijvingskosten |
+| 123 | Research en development |
+| 125 | Personeelskosten (lonen, sociale lasten, pensioen) |
+| 126 | Overige personeelsgebonden kosten (huisvesting, transport, kantoor) |
+| 130 | Bijzondere lasten |
+| 140 | Bijzondere baten |
+| 150 | Belasting over het resultaat |
+| 160 | Rentebaten en -lasten |
 
-Gebruik deze types als filter in de JOIN, niet hardcoded rekeningnummers.
+Kosten in brede zin zijn dus `t1.Type in (111, 120, 121, 122, 123, 125, 126)`. Filter je
+alleen op `BalanceType = 'W'`, dan tel je omzet en kosten door elkaar op.
+
+**Meerdere boekjaren:** voeg altijd `t0.Type != 310` toe. De jaarafsluiting boekt elke
+W&V-rekening van een afgesloten jaar tegen zichzelf terug, waardoor dat jaar zonder dit
+filter op ongeveer nul uitkomt en elke Δ-berekening onzin wordt.
 
 ---
 
 ## Aanpak
 
-Start altijd met een **intake-vraag** om te bepalen wat de ondernemer wil:
+Start met een intake-vraag om te bepalen wat de ondernemer wil:
 
 > "Welk inzicht heeft u nodig? Ik kan direct ophalen:
-> 1. **P&L (resultaat)** — omzet, kosten, winst voor een periode
-> 2. **Cashflow positie** — liquiditeit en verwachte in- en uitstroom
-> 3. **Omzet-analyse** — uitsplitsing per klant, categorie of afdeling
-> 4. **Marge-analyse** — bruto marge en kostprijzen
-> 5. **Vergelijking** — QoQ, MoM, of YoY
-> 6. **Commerciële KPI's** — recurring vs eenmalig, klantconcentratie, groeiers/dalers"
+> 1. **Cashflow positie**, liquiditeit en verwachte in- en uitstroom
+> 2. **Omzet-analyse**, uitsplitsing per klant, categorie of afdeling
+> 3. **Marge-analyse**, bruto marge en kostprijzen
+> 4. **Vergelijking**, QoQ, MoM of YoY
+> 5. **Commerciële KPI's**, recurring vs eenmalig, klantconcentratie, groeiers en dalers"
 
 Meerdere keuzes combineren is mogelijk.
 
 ---
 
-## Module 1: P&L — Winst & Verliesrekening
+## Module 1: formele resultatenrekening (doorverwijzing)
 
-### Kerndata ophalen
+Vraagt de gebruiker om een resultatenrekening, W&V, P&L of een jaarrekening-model, gebruik
+dan de skill **`resultatenrekening-analyse`**. Die bouwt de volledige structuur conform BW2
+Titel 9, inclusief de juiste teken-conventies, tussentellingen en RGS-uitsplitsing.
 
-Gebruik **ReportingBalance** via `execute_operation` — dit is het centrale endpoint voor
-alle grootboeksaldi per periode:
+Bouw hier geen tweede, afwijkende P&L: dat levert per definitie andere cijfers op dan de
+skill die er wel voor bedoeld is.
 
-```json
-{
-  "service": "Financial",
-  "entity": "ReportingBalance",
-  "operation": "GET",
-  "filters": {
-    "ReportingYear": 2026,
-    "ReportingPeriod": 3
-  },
-  "select": "GLAccountCode,GLAccountDescription,Amount,BalanceSide,ReportingPeriod,Type"
-}
-```
+---
 
-### Rekeningschema ophalen
+## Module 2: cashflow-positie
 
-Haal de GLAccounts op om de juiste rekeningen per type te identificeren. Let op: het veld
-heet `BalanceType` (niet `Classification` — dat veld bestaat niet):
+### Stap 1: huidige liquiditeit
+
+Bepaal de bank- en kasrekeningen via het grootboektype, niet via een codebereik. Liquide
+rekeningen zijn `GLAccount.Type` in {10 = Cash, 12 = Bank, 14 = Credit card, 16 = Payment
+services}.
+
+Met `read_operation`:
 
 ```json
 {
   "service": "Financial",
   "entity": "GLAccounts",
-  "operation": "GET",
-  "filters": { "BalanceType": "W" },
-  "select": "Code,Description,BalanceSide,BalanceType,Type"
+  "filters": { "Type": [10, 12, 14, 16] },
+  "select": "Code,Description,Type,TypeDescription"
 }
 ```
 
-- `BalanceType = "W"` = Winst & verliesrekening (exploitatierekeningen voor P&L)
-- `BalanceType = "B"` = Balansrekening (voor cashflow en vermogenspositie)
-- `BalanceSide = "C"` = credit (omzet) / `BalanceSide = "D"` = debet (kosten)
+Voed de gevonden codes daarna als filter in ReportingBalance. Laat `ReportingPeriod` weg,
+het banksaldo is cumulatief. Neem hieronder de codes over die stap 1 opleverde en typ nooit
+zelf een nummer of een nummerbereik: welke nummers een administratie voor bank en kas
+gebruikt ligt niet vast.
 
-### P&L berekenen
-
-Groepeer de ReportingBalance-data op GLAccount.Type:
-
-```
-OMZET:           SUM(Amount) voor Type 110 (is negatief → ABS voor weergave)
-OVERIGE KOSTEN:  SUM(Amount) voor Type 120
-COGS:            SUM(Amount) voor Type 111
-BRUTO MARGE:     ABS(OMZET) - COGS
-PERSONEELSK.:    SUM(Amount) voor Type 125
-AFSCHRIJVINGEN:  SUM(Amount) voor Type 122
-OVERIGE KOSTEN:  SUM(Amount) voor overige debet-typen
-EBIT:            BRUTO MARGE - alle bedrijfslasten
-FIN. B&L:        SUM(Amount) voor Type 160
-NETTO RESULT:    EBIT +/- financiële baten/lasten - belastingen (Type 150)
-```
-
-**Teken-conventie ReportingBalance**:
-- Omzetrekeningen: Amount is **negatief** (credit-saldo) → gebruik ABS() voor weergave
-- Kostenrekeningen: Amount is **positief** (debet-saldo) → direct bruikbaar
-- Winst = ABS(OMZET) - TOTALE_KOSTEN
-
-### YTD (Year-to-Date) P&L
-
-ReportingBalance per periode geeft **periode-mutaties**, niet cumulatief. Voor YTD:
-- Laat `ReportingPeriod` **weg** uit het filter → Exact Online geeft automatisch cumulatieve
-  YTD-totalen terug. Dit is de snelste route.
-- Of: haal periodes 1 t/m huidig op en sommeer Amount per GLAccountCode.
-
----
-
-## Module 2: Cashflow Positie
-
-### Stap 1: Huidige liquiditeit
-
-Bankrekeningen en kaspositie uit de balans (code-bereik 1000-1099):
+Met `read_operation`:
 
 ```json
 {
   "service": "Financial",
   "entity": "ReportingBalance",
-  "operation": "GET",
   "filters": {
-    "GLAccountCode": { "$gte": "1000", "$lte": "1099" },
-    "ReportingYear": 2026
+    "GLAccountCode": ["<code1 uit stap 1>", "<code2 uit stap 1>", "<...>"],
+    "ReportingYear": <jaar>
   },
   "select": "GLAccountCode,GLAccountDescription,Amount"
 }
 ```
 
-Cumulatief banksaldo = SUM van Amount voor codes 1000-1099.
+Cumulatief banksaldo is de som van Amount over die rekeningen.
 
-### Stap 2: Te ontvangen (debiteuren) via ReceivablesList
+### Stap 2: te ontvangen (debiteuren)
 
-Gebruik **ReceivablesList** (Read service) — dit bevat het `JournalCode` veld dat nodig
-is voor correcte classificatie:
+Gebruik `Read/ReceivablesList`, dat bevat het veld `JournalCode` dat nodig is voor correcte
+classificatie.
+
+Met `read_operation`:
 
 ```json
 {
   "service": "Read",
   "entity": "ReceivablesList",
-  "operation": "GET",
   "select": "AccountName,Amount,JournalCode,JournalDescription,InvoiceNumber,InvoiceDate,DueDate,Description"
 }
 ```
 
-**Classificatielogica — gebruik altijd JournalCode + Amount-teken:**
+Classificeer altijd op `JournalCode` plus het teken van Amount:
 
 | JournalCode | Amount | Betekenis | Actie |
 |---|---|---|---|
-| Bankdagboek (bijv. `"20"`, `"23"`) | negatief | Tegoed — ontvangen betaling nog niet afgeletterd | Afletteren |
-| Verkoopboek (bijv. `"70"`) | positief | Vordering — openstaande verkoopfactuur | Opvolgen |
-| Verkoopboek (bijv. `"70"`) | negatief | Tegoed — openstaande creditnota | Uitbetalen/verrekenen |
+| Bankdagboek (bijv. `"20"`, `"23"`) | negatief | Tegoed, ontvangen betaling nog niet afgeletterd | Afletteren |
+| Verkoopboek (bijv. `"70"`) | positief | Vordering, openstaande verkoopfactuur | Opvolgen |
+| Verkoopboek (bijv. `"70"`) | negatief | Tegoed, openstaande creditnota | Uitbetalen of verrekenen |
 
-Controleer bankdagboek-codes via: `Financial/Journals` met `Type: 12`.
+Controleer de bankdagboek-codes via `Financial/Journals` met `Type: 12`.
 
-### Stap 3: Te betalen (crediteuren)
+### Stap 3: te betalen (crediteuren)
+
+Met `read_operation`:
 
 ```json
 {
   "service": "Bulk",
   "entity": "Cashflow/Payments",
-  "operation": "GET",
   "filters": { "Status": [20, 30] },
   "select": "AccountName,AmountDC,DueDate,InvoiceNumber"
 }
 ```
 
-### Cashflow-overzicht presenteren
-
-Groepeer op DueDate-buckets (7d, 8-30d, 31-60d, >60d) en presenteer als samenvatting
-met huidige kasmiddelen + verwachte in/uitstroom = verwachte positie.
+Groepeer op DueDate-buckets (7d, 8 tot 30d, 31 tot 60d, meer dan 60d) en presenteer:
+huidige kasmiddelen plus verwachte in- en uitstroom is de verwachte positie.
 
 ---
 
-## Module 3: Omzet-Analyse (via analyze_data)
+## Module 3: omzet-analyse
 
-Dit is de kernmodule voor omzetanalyses. Gebruik altijd `analyze_data` met de
-`Financial/Transactionlines` tabel en een INNER JOIN op `Financial/GLAccounts`.
+Kernmodule. Gebruik `analyze_data` op `Financial/TransactionLines` met een INNER JOIN op
+`Financial/GLAccounts`, gekoppeld op `GLAccountCode` = `Code`.
 
-### Basispatroon: omzet per periode
+### Basispatroon: omzet per kwartaal
 
-```json
-{
-  "table": "Financial/Transactionlines",
-  "joins": [{
-    "table": "Financial/GLAccounts",
-    "type": "INNER",
-    "on": { "leftColumn": "GLAccount", "rightColumn": "ID" },
-    "select": ["Code", "Description"]
-  }],
-  "aggregations": [
-    { "function": "SUM", "column": "AmountDC", "alias": "Omzet" }
-  ],
-  "filters": [
-    { "column": "t1.Type", "operator": "=", "value": 110 },
-    { "column": "Date", "operator": ">=", "value": "2025-01-01" },
-    { "column": "Date", "operator": "<=", "value": "2026-03-31" }
-  ],
-  "dateGroupBy": [
-    { "column": "Date", "part": "YEAR", "alias": "Jaar" },
-    { "column": "Date", "part": "QUARTER", "alias": "Kwartaal" }
-  ],
-  "orderBy": [
-    { "column": "Jaar", "direction": "ASC" },
-    { "column": "Kwartaal", "direction": "ASC" }
-  ]
-}
-```
-
-De resultaten bevatten negatieve bedragen (credit-boekingen) → gebruik ABS() bij weergave.
-
-### Omzet per categorie (grootboekrekening)
-
-Voeg `groupBy` toe op de GLAccount-velden om de omzet per omzetcategorie te zien:
+Met `analyze_data`:
 
 ```json
 {
-  "table": "Financial/Transactionlines",
-  "joins": [{
-    "table": "Financial/GLAccounts",
-    "type": "INNER",
-    "on": { "leftColumn": "GLAccount", "rightColumn": "ID" },
-    "select": ["Code", "Description"]
-  }],
-  "aggregations": [
-    { "function": "SUM", "column": "AmountDC", "alias": "Omzet" }
-  ],
-  "filters": [
-    { "column": "t1.Type", "operator": "=", "value": 110 },
-    { "column": "Date", "operator": ">=", "value": "2025-10-01" },
-    { "column": "Date", "operator": "<=", "value": "2026-03-31" }
-  ],
-  "groupBy": ["t1.Code", "t1.Description"],
-  "dateGroupBy": [
-    { "column": "Date", "part": "YEAR", "alias": "Jaar" },
-    { "column": "Date", "part": "QUARTER", "alias": "Kwartaal" }
-  ],
-  "orderBy": [
-    { "column": "t1.Code", "direction": "ASC" },
-    { "column": "Jaar", "direction": "ASC" }
-  ],
-  "limit": 200
+  "query": {
+    "table": "Financial/TransactionLines",
+    "joins": [{
+      "table": "Financial/GLAccounts",
+      "type": "INNER",
+      "on": { "leftColumn": "GLAccountCode", "rightColumn": "Code" },
+      "select": ["Code", "Description"]
+    }],
+    "aggregations": [
+      { "function": "SUM", "column": "AmountDC", "alias": "Omzet", "sign": -1 }
+    ],
+    "filters": [
+      { "column": "t1.Type", "operator": "=", "value": 110 },
+      { "column": "t0.Type", "operator": "!=", "value": 310 },
+      { "column": "Date", "operator": ">=", "value": "2025-01-01" },
+      { "column": "Date", "operator": "<=", "value": "2026-03-31" }
+    ],
+    "dateGroupBy": [
+      { "column": "Date", "part": "YEAR", "alias": "Jaar" },
+      { "column": "Date", "part": "QUARTER", "alias": "Kwartaal" }
+    ],
+    "orderBy": [
+      { "column": "Jaar", "direction": "ASC" },
+      { "column": "Kwartaal", "direction": "ASC" }
+    ]
+  }
 }
 ```
 
-Dit geeft een uitsplitsing als bijv. "Omzet Abonnementen" vs "Omzet Maatwerk" vs
-"Omzet Overig" — precies zoals het rekeningschema van de klant is ingericht.
+Omzet staat credit en is dus negatief in TransactionLines. `"sign": -1` op de aggregatie
+draait dat direct om, zodat je niet achteraf hoeft te ABS-en. Laat je `sign` weg, gebruik
+dan ABS() bij weergave en let op de sorteerrichting (`ASC` = hoogste omzet eerst).
 
-### Omzet per klant
+### Varianten op hetzelfde patroon
 
-TransactionLines bevat het veld `AccountName` — gebruik dit voor klant-uitsplitsing:
+| Vraag | Aanpassing |
+|---|---|
+| Omzet per categorie | Voeg `"groupBy": ["t1.Code", "t1.Description"]` toe, geeft bijv. Abonnementen vs Maatwerk vs Overig |
+| Omzet per klant | Voeg `"select": ["AccountName"]` en `"groupBy": ["AccountName"]` toe |
+| Omzet per maand | Zet `part` in `dateGroupBy` op `MONTH` in plaats van `QUARTER` |
+| Omzet per kostenplaats | Voeg `CostCenter` toe aan `select` en `groupBy` |
 
-```json
-{
-  "table": "Financial/Transactionlines",
-  "joins": [{
-    "table": "Financial/GLAccounts",
-    "type": "INNER",
-    "on": { "leftColumn": "GLAccount", "rightColumn": "ID" },
-    "select": []
-  }],
-  "select": ["AccountName"],
-  "aggregations": [
-    { "function": "SUM", "column": "AmountDC", "alias": "Omzet" }
-  ],
-  "filters": [
-    { "column": "t1.Type", "operator": "=", "value": 110 },
-    { "column": "Date", "operator": ">=", "value": "2026-01-01" },
-    { "column": "Date", "operator": "<=", "value": "2026-03-31" }
-  ],
-  "groupBy": ["AccountName"],
-  "orderBy": [{ "column": "Omzet", "direction": "ASC" }],
-  "limit": 50
-}
-```
-
-Omzet is negatief in TransactionLines (credit), dus `ASC` sortering = hoogste omzet eerst.
-
-### Omzet per maand (detailniveau)
-
-Gebruik hetzelfde basispatroon maar met maand-groepering:
-
-```json
-{
-  "dateGroupBy": [
-    { "column": "Date", "part": "YEAR", "alias": "Jaar" },
-    { "column": "Date", "part": "MONTH", "alias": "Maand" }
-  ]
-}
-```
-
-### Omzet per kostenplaats / afdeling
-
-Controleer eerst of kostenplaatsen zijn ingericht:
-
-```json
-{
-  "service": "HRM",
-  "entity": "CostCenters",
-  "operation": "GET",
-  "select": "Code,Description,Active"
-}
-```
-
-Zo ja, voeg `CostCenter` toe aan `select` en `groupBy` in de analyze_data query.
+Kostenplaatsen zijn optioneel per administratie. Controleer eerst met `read_operation` op
+`HRM/CostCenters` (`select: "Code,Description,Active"`) of ze zijn ingericht.
 
 ---
 
-## Module 4: Marge-Analyse
+## Module 4: marge-analyse
 
-### Bruto marge berekenen via analyze_data
+Haal omzet (Type 110) en kostprijs (Type 111) in één query op: gebruik het basispatroon uit
+Module 3, maar met `{ "column": "t1.Type", "operator": "IN", "values": [110, 111] }` en
+`"groupBy": ["t1.Type"]`. Laat `sign` hier weg, zodat omzet negatief en kosten positief
+blijven en de tekens onderling vergelijkbaar zijn.
 
-Haal omzet (Type 110) en inkoopkosten (Type 111) op in één query:
+Bruto marge = (ABS(omzet) - inkoopkosten) / ABS(omzet) x 100%.
 
-```json
-{
-  "table": "Financial/Transactionlines",
-  "joins": [{
-    "table": "Financial/GLAccounts",
-    "type": "INNER",
-    "on": { "leftColumn": "GLAccount", "rightColumn": "ID" },
-    "select": ["Type"]
-  }],
-  "aggregations": [
-    { "function": "SUM", "column": "AmountDC", "alias": "Bedrag" }
-  ],
-  "filters": [
-    { "column": "t1.Type", "operator": "IN", "values": [110, 111] },
-    { "column": "Date", "operator": ">=", "value": "2026-01-01" },
-    { "column": "Date", "operator": "<=", "value": "2026-03-31" }
-  ],
-  "groupBy": ["t1.Type"],
-  "dateGroupBy": [
-    { "column": "Date", "part": "YEAR", "alias": "Jaar" },
-    { "column": "Date", "part": "QUARTER", "alias": "Kwartaal" }
-  ]
-}
-```
-
-Berekening: Bruto marge = (ABS(Omzet) - Inkoopkosten) / ABS(Omzet) x 100%
-
-**Marge-benchmarks** (indicatief):
-- Dienstverlening: 60-80% is gebruikelijk
-- Handel/groothandel: 20-40%
-- Productie/maakindustrie: 30-50%
+Sectorbenchmarks staan in `references/benchmarks.md`.
 
 ---
 
-## Module 5: Vergelijking & Trends
+## Module 5: vergelijking en trends
 
-### QoQ, MoM, YoY vergelijkingen
-
-Alle vergelijkingen verlopen via `analyze_data` op TransactionLines. Het datumfilter
-bepaalt welke periodes je vergelijkt:
+Alle vergelijkingen lopen via `analyze_data` op TransactionLines. Het datumfilter bepaalt
+welke periodes je vergelijkt:
 
 | Vergelijking | Datumfilter | dateGroupBy |
 |---|---|---|
 | QoQ (dit vs vorig kwartaal) | Afgelopen 6 maanden | YEAR + QUARTER |
 | MoM (deze vs vorige maand) | Afgelopen 2 maanden | YEAR + MONTH |
-| YoY (dit jaar vs vorig jaar) | Dit jaar + vorig jaar | YEAR |
-| YTD vergelijking | Jan-huidig, beide jaren | YEAR + MONTH |
+| YoY (dit vs vorig jaar) | Dit jaar plus vorig jaar | YEAR |
+| YTD-vergelijking | Januari tot heden, beide jaren | YEAR + MONTH |
 
-Voer altijd **twee parallelle analyze_data calls** uit:
-1. Totalen per periode (voor de samenvattingstabel)
-2. Per categorie per periode (voor de uitsplitsing waar de verandering zit)
+Elk van deze vergelijkingen raakt meer dan één boekjaar zodra de periode een jaargrens
+overschrijdt. Neem dan `{ "column": "t0.Type", "operator": "!=", "value": 310 }` op in de
+filters, anders staat het afgesloten jaar op ongeveer nul en klopt elke Δ niet.
 
-### Signalering
+Voer twee `analyze_data` calls uit: totalen per periode voor de samenvattingstabel, en per
+categorie per periode om te zien waar de verandering zit.
 
-Bereken deltas en signaleer automatisch:
-- Omzetgroei > 20%: sterke groei
-- Kostengroei > omzetgroei: druk op de marge
-- Negatieve omzetgroei: analyseer oorzaak (welke categorie/klant?)
-- Marge-verbetering: efficiëntiewinst
-- Marge-verslechtering >3pp: kostenbeheersing vereist aandacht
+Signaleringsdrempels staan in `references/benchmarks.md`.
 
 ---
 
-## Module 6: Commerciële KPI's
+## Module 6: commerciële KPI's
 
-Deze module geeft inzicht in de commerciële gezondheid van het bedrijf, voorbij de
-pure financiële cijfers.
+Inzicht in de commerciële gezondheid, voorbij de pure financiële cijfers.
 
-### KPI 1: Recurring vs eenmalig
+- **Recurring vs eenmalig.** Classificeer de grootboekrekeningen uit de omzet-per-categorie
+  query op naam: "Abonnement" is recurring, "Maatwerk", "Project", "Consult" en "Overig" zijn
+  eenmalig. Presenteer als "X% van de omzet is recurring", met de trend.
+- **Klantconcentratie.** Bereken uit de omzet-per-klant query het aandeel van de top 5 en de
+  top 10 in de totale omzet.
+- **Groeiers en dalers.** Vergelijk de omzet per klant tussen twee periodes, sorteer op
+  absoluut verschil en toon de top 5 groeiers, de top 5 dalers, nieuwe klanten (omzet nu,
+  geen omzet in de vorige periode) en verdwenen klanten (omgekeerd).
+- **Gemiddeld factuurbedrag.** Een stijgend gemiddelde bij dalend volume duidt op
+  verschuiving naar grotere opdrachten.
 
-Gebruik de omzet-per-categorie query (Module 3) en classificeer de GLAccount-codes
-in twee groepen op basis van de rekeningnaam:
-- **Recurring**: rekeningen met "Abonnement" in de naam
-- **Eenmalig**: rekeningen met "Maatwerk", "Project", "Consult", "Overig" in de naam
-
-Presenteer als: "X% van de omzet is recurring" + trend vs vorige periode.
-Dit is een cruciale indicator — hoe hoger het recurring-percentage, hoe voorspelbaarder
-de inkomsten.
-
-### KPI 2: Klantconcentratie
-
-Gebruik de omzet-per-klant query (Module 3) en bereken:
-- Top 5 klanten als % van totale omzet
-- Top 10 klanten als % van totale omzet
-
-Signalering:
-- Top 5 > 50%: klantconcentratie-risico — afhankelijkheid van enkele grote klanten
-- Top 1 > 25%: hoog risico — één klant bepaalt een kwart van de omzet
-
-### KPI 3: Groeiers en dalers
-
-Vergelijk de omzet per klant tussen twee periodes (QoQ of YoY). Sorteer op
-absoluut verschil en toon:
-- Top 5 groeiers (hoogste absolute groei)
-- Top 5 dalers (hoogste absolute daling)
-- Nieuwe klanten (omzet in huidige periode, geen omzet in vorige)
-- Verdwenen klanten (omzet in vorige periode, geen omzet in huidige)
-
-### KPI 4: Gemiddeld factuurbedrag
-
-Een stijgend gemiddeld factuurbedrag bij dalend volume kan duiden op verschuiving naar
-grotere opdrachten — minder voorspelbaar maar hogere waarde per klant.
+De bijbehorende signaleringsdrempels staan in `references/benchmarks.md`.
 
 ---
 
-## Management Rapport Output
+## Output en valkuilen
 
-```
-Management Informatie — [Maand/Kwartaal] [Jaar]
-Stand per [datum] — Real-time uit Exact Online (analyze_data)
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-RESULTATENREKENING (YTD t/m [periode])
-                          Dit jaar    Vorig jaar    Δ%
-Netto-omzet:            €  xxx.xxx   €  xxx.xxx   +xx,x%
-Inkoopkosten:           €  xxx.xxx   €  xxx.xxx   +xx,x%
-────────────────────────────────────────────────────────
-Bruto marge:            €  xxx.xxx   €  xxx.xxx   +xx,x%
-Bruto marge %:                xx,x%        xx,x%   +x,xpp
-
-Personeelskosten:       €  xxx.xxx   €  xxx.xxx    +x,x%
-Overige bedrijfsl.:     €  xxx.xxx   €  xxx.xxx   +xx,x%
-────────────────────────────────────────────────────────
-EBIT:                   €  xxx.xxx   €  xxx.xxx   +xx,x%
-
-OMZET PER CATEGORIE (dit kwartaal vs vorig kwartaal)
-                          Q huidig    Q vorig       Δ%
-Abonnementen:           €  xxx.xxx   €  xxx.xxx   +xx,x%
-Maatwerk:               €  xxx.xxx   €  xxx.xxx   +xx,x%
-Overig:                 €  xxx.xxx   €  xxx.xxx   +xx,x%
-────────────────────────────────────────────────────────
-Totaal:                 €  xxx.xxx   €  xxx.xxx   +xx,x%
-
-COMMERCIËLE KPI's
-  Recurring %:                xx%  (vorig kwartaal: xx%)
-  Top 5 klantconcentratie:    xx%  (vorig kwartaal: xx%)
-
-TOP 5 KLANTEN (omzet periode)
-  1. Klant A BV         € xx.xxx  (xx,x%)
-  2. Klant B NV         € xx.xxx  (xx,x%)
-  ...
-
-TOP 5 GROEIERS                    TOP 5 DALERS
-  Klant X  +€ xx.xxx (+xxx%)        Klant Y  -€ x.xxx (-xx%)
-  ...                                ...
-
-AANDACHTSPUNTEN:
-[Automatisch gegenereerde signaleringen op basis van de data]
-```
-
----
-
-## Bekende API-eigenaardigheden
-
-| Valkuil | Correct | Toelichting |
-|---------|---------|-------------|
-| SalesInvoices voor bedragen | `analyze_data` op `Financial/Transactionlines` | SalesInvoices bevat bruto factuurbedragen, niet de geboekte omzet |
-| GLAccount filter op code-ranges | Filter op `t1.Type = 110` via JOIN | Rekeningnummers variëren per administratie |
-| GLAccounts filter `Classification` | Gebruik `BalanceType` (W of B) | `Classification` veld bestaat niet in GLAccounts entity |
-| `service: "Financial"` voor TransactionLines | In `execute_operation`: `service: "Financialtransaction"` | In `analyze_data`: gewoon `Financial/Transactionlines` als table |
-| ReportingBalance Amount = saldo | Amount = mutatie van die periode | Laat ReportingPeriod weg voor cumulatief YTD |
-| Omzet Amount = positief | Omzet Amount = negatief (credit) | ABS() nodig voor weergave; kosten zijn positief |
-| ReceivablesList Amount teken = richting | Combineer JournalCode + Amount-teken | Bankdagboek = tegoed, verkoopboek positief = vordering |
-| CostCenters altijd beschikbaar | CostCenters optioneel | Niet elke administratie gebruikt kostenplaatsen |
-| ReportingBalance voor banksaldo | Codes 1000-1099, laat ReportingPeriod weg | Banksaldo is cumulatief |
-
----
+- Rapportsjabloon: `references/rapportformat.md`.
+- Bekende API-eigenaardigheden en valkuilen: `references/valkuilen.md`. Lees dit vóór je een
+  query bouwt, het dekt de tekens, de JOIN-sleutel, de paginatie en de code-range-val.
 
 ## Samenwerking met andere skills
 
-- **Debiteurenbeheer**: bij signaleren van >60 dagen openstaand → verwijs naar debiteurenbeheer skill
-- **Periodeafsluiting**: als cijfers niet kloppen → check of periode volledig gesloten is
-- **Cashflow-analyse**: bij liquiditeitsvragen → verwijs naar de cashflow-analyse skill
-- **Resultatenrekening-analyse**: voor een volledige W&V conform BW2 Titel 9
+- **Resultatenrekening-analyse**: elke vraag om een formele W&V of P&L.
+- **Debiteurenbeheer**: bij signaleren van meer dan 60 dagen openstaand.
+- **Cashflow-analyse**: bij diepere liquiditeitsvragen.
+- **Periodeafsluiting**: als de cijfers niet kloppen, check of de periode volledig gesloten is.
 
 ## Communicatie
 
-- Spreek als financieel adviseur, niet als boekhouder: geef duiding, niet alleen cijfers
-- Geef altijd context bij afwijkingen: wat betekent dit voor het bedrijf?
-- Signaleer actief wat aandacht vraagt — de ondernemer heeft niet altijd financiële expertise
-- Gebruik € Nederlands formaat (€ 1.234,56) en Nederlandse terminologie
-- Vermeld altijd "stand per [datum]" en de databron ("via analyze_data / TransactionLines")
-- Vraag bij eerste gebruik: welk boekjaar, welke periode, en wil men YTD of specifieke periode?
-- Bied aan om bevindingen als rapport te exporteren (docx/xlsx) via de bijbehorende skills
+- Spreek als financieel adviseur, niet als boekhouder: geef duiding, niet alleen cijfers.
+- Geef context bij afwijkingen: wat betekent dit voor het bedrijf?
+- Signaleer actief wat aandacht vraagt, de ondernemer heeft niet altijd financiële expertise.
+- Gebruik Nederlands bedragformaat (€ 1.234,56) en Nederlandse terminologie.
+- Vermeld altijd "stand per [datum]" en de databron ("via analyze_data op TransactionLines").
+- Vraag bij eerste gebruik: welk boekjaar, welke periode, en YTD of een specifieke periode?

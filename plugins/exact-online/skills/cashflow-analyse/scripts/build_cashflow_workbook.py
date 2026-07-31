@@ -23,7 +23,7 @@ TYPE_NL = {
     "27": "Nog te betalen kosten", "29": "Vennootschapsbelasting te betalen",
     "40": "Voorraad", "100": "Belasting te betalen", "35": "Cumulatieve afschrijving",
     "90": "Tussen-/verzamelrekening", "30": "Vaste activa", "32": "Overige langlopende activa",
-    "50": "Eigen vermogen — kapitaal", "52": "Winstreserve", "55": "Langlopende schuld",
+    "50": "Eigen vermogen: kapitaal", "52": "Winstreserve", "55": "Langlopende schuld",
     "60": "Kortlopend deel langlopende schuld", "110": "Omzet", "111": "Kostprijs omzet",
     "120": "Overige kosten", "121": "Verkoop/algemeen/beheer", "122": "Afschrijvingskosten",
     "123": "R&D", "125": "Personeelskosten", "126": "Werkgeverslasten",
@@ -227,7 +227,7 @@ def main(in_path, out_path):
 
     # ================= KASSTROOM (INDIRECT) =================
     ind = wb.create_sheet("Kasstroom (indirect)")
-    ind.cell(row=1, column=1, value=f"Kasstroomoverzicht — indirecte methode  ({d.get('periode_label','')})").font = Font(name=FONT, size=13, bold=True, color=NAVY)
+    ind.cell(row=1, column=1, value=f"Kasstroomoverzicht, indirecte methode  ({d.get('periode_label','')})").font = Font(name=FONT, size=13, bold=True, color=NAVY)
     month_header(ind, 3, f"Bedragen in {cur}")
     op_lines = ["Nettoresultaat", "Afschrijvingen (terugname)", "Mutatie debiteuren",
                 "Mutatie voorraad", "Mutatie crediteuren", "Mutatie belastingen (btw e.d.)",
@@ -298,13 +298,13 @@ def main(in_path, out_path):
     row_eind = r
     r += 2
     # control: actual liquide movement vs netto
-    ind.cell(row=r, column=1, value="Controle — werkelijke mutatie liquide middelen").font = ITAL
+    ind.cell(row=r, column=1, value="Controle: werkelijke mutatie liquide middelen").font = ITAL
     for i, m in enumerate(months):
         ind.cell(row=r, column=2 + i, value=f'=SUMIFS({MU},{CA},"Liquide middelen",{MA},{m})').number_format = EUR
     ind.cell(row=r, column=2 + n, value=f'=SUMIFS({MU},{CA},"Liquide middelen")').number_format = EUR
     row_ctrl = r
     r += 1
-    ind.cell(row=r, column=1, value="Controle — verschil (moet 0 zijn)").font = ITAL
+    ind.cell(row=r, column=1, value="Controle: verschil (moet 0 zijn)").font = ITAL
     for i in range(n + 1):
         col = get_column_letter(2 + i)
         ind.cell(row=r, column=2 + i, value=f"={col}{row_netto}-{col}{row_ctrl}").number_format = EUR2
@@ -317,7 +317,7 @@ def main(in_path, out_path):
 
     # ================= KASSTROOM (DIRECT, AFGELEID) =================
     dr = wb.create_sheet("Kasstroom (direct)")
-    dr.cell(row=1, column=1, value=f"Kasstroomoverzicht — directe methode (afgeleid)  ({d.get('periode_label','')})").font = Font(name=FONT, size=13, bold=True, color=NAVY)
+    dr.cell(row=1, column=1, value=f"Kasstroomoverzicht, directe methode (afgeleid)  ({d.get('periode_label','')})").font = Font(name=FONT, size=13, bold=True, color=NAVY)
     month_header(dr, 3, f"Bedragen in {cur}")
 
     def f_klanten(m):
@@ -377,7 +377,7 @@ def main(in_path, out_path):
     dr.cell(row=rr, column=1).font = BOLD
     row_dir_ocf = rr
     rr += 1
-    dr.cell(row=rr, column=1, value="Controle — verschil met indirecte methode (moet 0 zijn)").font = ITAL
+    dr.cell(row=rr, column=1, value="Controle: verschil met indirecte methode (moet 0 zijn)").font = ITAL
     for i in range(n + 1):
         col = get_column_letter(2 + i)
         dr.cell(row=rr, column=2 + i, value=f"={col}{row_dir_ocf}-'Kasstroom (indirect)'!{col}{row_op}").number_format = EUR2
@@ -421,7 +421,7 @@ def main(in_path, out_path):
     open_cred = float(d["open_crediteuren_totaal"]) if d.get("open_crediteuren_totaal") is not None else sum(float(x["bedrag"]) for x in cred)
     voorraad_eind = d.get("voorraad_eindstand")
     kp.cell(row=1, column=1, value="Werkkapitaal & kasstroom-KPI's").font = Font(name=FONT, size=13, bold=True, color=NAVY)
-    kp.cell(row=2, column=1, value=f"Periode: {d.get('periode_label','')} — {n} maand(en). Cijfers indicatief, stand per " + peil).font = ITAL
+    kp.cell(row=2, column=1, value=f"Periode: {d.get('periode_label','')}, {n} maand(en). Cijfers indicatief, stand per " + peil).font = ITAL
     # inputs block
     inp = [
         ("Maanden in periode", n, '0'),
@@ -463,9 +463,9 @@ def main(in_path, out_path):
     inv = ref["Investeringskasstroom"]
     liq = ref["Liquide eindsaldo"]
     kpis = [
-        ("DSO — debiteurendagen", f'=IFERROR({od}/({omz}/{M}*12)*365,"-")', DAYS, "Gem. dagen tot inning"),
-        ("DPO — crediteurendagen", f'=IFERROR({oc}/({kost}/{M}*12)*365,"-")', DAYS, "Gem. dagen tot betaling"),
-        ("DIO — voorraaddagen", (f'=IFERROR({vr}/({kost}/{M}*12)*365,"-")' if voorraad_eind is not None else '="-"'), DAYS, "Gem. dagen voorraad"),
+        ("DSO (debiteurendagen)", f'=IFERROR({od}/({omz}/{M}*12)*365,"-")', DAYS, "Gem. dagen tot inning"),
+        ("DPO (crediteurendagen)", f'=IFERROR({oc}/({kost}/{M}*12)*365,"-")', DAYS, "Gem. dagen tot betaling"),
+        ("DIO (voorraaddagen)", (f'=IFERROR({vr}/({kost}/{M}*12)*365,"-")' if voorraad_eind is not None else '="-"'), DAYS, "Gem. dagen voorraad"),
         ("Kasconversiecyclus (CCC)", (f'=IFERROR(B{rr}+B{rr+2}-B{rr+1},"-")' if voorraad_eind is not None else f'=IFERROR(B{rr}-B{rr+1},"-")'), DAYS, "DSO + DIO − DPO"),
         ("Vrije kasstroom (FCF)", f"={ocf}+{inv}", EUR, "OCF − investeringen"),
         ("Kasstroommarge", f'=IFERROR({ocf}/{omz},"-")', PCT, "OCF / omzet"),
@@ -489,7 +489,7 @@ def main(in_path, out_path):
     wb.move_sheet("Dashboard", -(len(wb.sheetnames) - 1))
     db.sheet_view.showGridLines = False
     db.merge_cells("A1:H1")
-    t = db.cell(row=1, column=1, value=f"Cashflow-analyse — {d.get('bedrijf','')}")
+    t = db.cell(row=1, column=1, value=f"Cashflow-analyse: {d.get('bedrijf','')}")
     t.font = H1
     t.fill = FILL_NAVY
     t.alignment = LEFT
@@ -564,7 +564,7 @@ def main(in_path, out_path):
     to.sheet_view.showGridLines = False
     to.column_dimensions["A"].width = 100
     blocks = [
-        (f"Cashflow-analyse — {d.get('bedrijf','')}", H1, FILL_NAVY),
+        (f"Cashflow-analyse: {d.get('bedrijf','')}", H1, FILL_NAVY),
         (f"Administratie {d.get('administratie','')} · periode {d.get('periode_label','')} · valuta {cur}", ITAL, None),
         ("", NORM, None),
         ("Opzet", BOLD, None),
@@ -574,20 +574,20 @@ def main(in_path, out_path):
          "grootboeknummers of -namen.", NORM, None),
         ("Rekenwijze", BOLD, None),
         ("Per boeking geldt debet = credit, dus over alle rekeningen samen is de mutatie nul. De mutatie op de "
-         "liquide rekeningen is daarmee gelijk aan minus de mutatie op alle overige rekeningen — de basis van de "
+         "liquide rekeningen is daarmee gelijk aan minus de mutatie op alle overige rekeningen, de basis van de "
          "indirecte methode. Het kaseffect van elke niet-liquide rekening is daarom: − mutatie. Hierdoor sluiten beide "
          "methoden per definitie op elkaar aan (zie de controleregels onderaan elk tabblad).", NORM, None),
         ("Tabbladen", BOLD, None),
-        ("· Dashboard — kerncijfers en grafieken\n"
-         "· Kasstroom (indirect) — resultaat + afschrijvingen + werkkapitaal + investering + financiering\n"
-         "· Kasstroom (direct) — ontvangsten en uitgaven per categorie (afgeleid)\n"
-         "· Werkkapitaal & KPI's — DSO, DPO, DIO, kasconversiecyclus, vrije kasstroom, marges\n"
-         "· Brondata — de ruwe mutatie per rekeningtype per maand (bron van alle formules)\n"
-         "· Classificatie — de gebruikte rekeningtype-indeling", NORM, None),
+        ("· Dashboard: kerncijfers en grafieken\n"
+         "· Kasstroom (indirect): resultaat + afschrijvingen + werkkapitaal + investering + financiering\n"
+         "· Kasstroom (direct): ontvangsten en uitgaven per categorie (afgeleid)\n"
+         "· Werkkapitaal & KPI's: DSO, DPO, DIO, kasconversiecyclus, vrije kasstroom, marges\n"
+         "· Brondata: de ruwe mutatie per rekeningtype per maand (bron van alle formules)\n"
+         "· Classificatie: de gebruikte rekeningtype-indeling", NORM, None),
         ("Aandachtspunten", BOLD, None),
-        (("· Het beginsaldo liquide middelen is " + ("bevestigd." if d.get("beginsaldo_bevestigd") else "NIET bevestigd — controleer dit tegen de werkelijke bankstand.") + "\n"
+        (("· Het beginsaldo liquide middelen is " + ("bevestigd." if d.get("beginsaldo_bevestigd") else "NIET bevestigd, controleer dit tegen de werkelijke bankstand.") + "\n"
           "· Cijfers zijn indicatief en betreffen de stand per " + peil + "; ook afgesloten periodes kunnen nog corrigeren.\n"
-          "· Onbekende rekeningtypes" + (": " + ", ".join(sorted(onbekend)) + " — controleer de regel 'Niet-geclassificeerd / technisch'." if onbekend else " zijn niet aangetroffen.")), NORM, FILL_YELL),
+          "· Onbekende rekeningtypes" + (": " + ", ".join(sorted(onbekend)) + ", controleer de regel 'Niet-geclassificeerd / technisch'." if onbekend else " zijn niet aangetroffen.")), NORM, FILL_YELL),
     ]
     rr = 1
     for text, font, fill in blocks:

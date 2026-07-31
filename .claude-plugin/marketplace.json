@@ -1,5 +1,6 @@
 {
   "name": "iwebdevnl-exact",
+  "description": "iWebDevelopment marketplace voor Exact Online AI Connect: een hosted MCP-server met commands en skills voor Exact Online.",
   "owner": { "name": "iWebDevelopment", "email": "support@iwebdevelopment.com" },
   "plugins": [
     {

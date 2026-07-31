@@ -1,16 +1,18 @@
 # Beperkingen en Foutafhandeling
 
+Aanvulling op SKILL.md: uitsluitend foutmeldingen, harde beperkingen en workarounds. De regels
+zelf (OpeningBalance bepalen, verrekening vorig overzicht) staan in SKILL.md Fase 2d en Fase 3.
+
 ## BankEntry aanmaken
 
-### ⛔ OpeningBalance moet kloppen
+### ⛔ Saldovalidatie faalt
 
 Exact Online valideert: `OpeningBalance + som(BankEntryLines) = ClosingBalance`.
 
-Als de vorige BankEntry een `ClosingBalanceFC` heeft, gebruik dat als `OpeningBalanceFC`.
-Bij de eerste boeking in het creditcarddagboek: gebruik 0.
-
 **Fout**: `Opening balance plus all bank entry lines should result in the closing balance`
-**Oplossing**: Controleer de som van alle AmountFC waarden en pas ClosingBalanceFC aan.
+**Oplossing**: Controleer de som van alle AmountFC waarden en pas ClosingBalanceFC aan. Let op dat
+betalingen en koersopslagen negatief zijn en dat de verrekening van het vorige overzicht in
+`OpeningBalanceFC` zit en niet als losse regel.
 
 ### ⛔ BankEntryLines zijn niet verwijderbaar of wijzigbaar na POST
 
@@ -20,10 +22,15 @@ Eenmaal aangemaakt kan een BankEntryLine niet worden verwijderd of gewijzigd
 - Opnieuw aanmaken met correcte gegevens
 
 **DELETE BankEntry:**
+
+**Tool: `write_operation`**
+
 ```json
 {
   "service": "Financialtransaction", "entity": "BankEntries",
-  "operation": "DELETE", "id": "{EntryID}"
+  "operation": "DELETE",
+  "confirmed": true,
+  "id": "{EntryID}"
 }
 ```
 Alleen mogelijk als Status = 20 (open). Na verwerking (Status = 50) niet meer mogelijk.
@@ -31,19 +38,14 @@ Alleen mogelijk als Status = 20 (open). Na verwerking (Status = 50) niet meer mo
 ### ⛔ Account verplicht bij GLAccount type 22 (crediteuren)
 
 BankEntryLines op een crediteurenrekening (GLAccount.Type = 22) vereisen altijd een `Account`
-(leverancier GUID). Zonder Account: Exact boekt de regel wel maar zonder relatiekoppeling —
-afletteren via MatchSets mislukt dan later.
-
-### ⛔ Verrekening vorig overzicht NIET als BankEntryLine
-
-De verrekening (positief bedrag op afschrift) is het saldo van vorig periode dat
-wordt verrekend. Dit verwerk je via het `OpeningBalanceFC` veld, niet als aparte regel.
+(leverancier GUID). Zonder Account boekt Exact de regel wel, maar zonder relatiekoppeling, en
+mislukt het afletteren via MatchSets later.
 
 ---
 
 ## MatchSets
 
-### ⛔ TransactionLine ID ≠ BankEntryLine ID
+### ⛔ TransactionLine ID is niet gelijk aan BankEntryLine ID
 
 Gebruik voor MatchSets altijd het `TransactionLine ID` (via Financialtransaction/TransactionLines),
 niet het `BankEntryLine ID`. Ze hebben soms hetzelfde GUID maar dat is toeval.
@@ -52,7 +54,7 @@ niet het `BankEntryLine ID`. Ze hebben soms hetzelfde GUID maar dat is toeval.
 
 **Fout**: `Betalingstermijn: GLAccount=<crediteuren> Account=X finyear=Y finperiod=Z Niet gevonden!`
 
-Optie 1: Periode tijdelijk heropenen → MatchSets → sluiten.
+Optie 1: Periode tijdelijk heropenen, MatchSets uitvoeren, weer sluiten.
 Optie 2: Handmatig afletteren via Exact Online UI.
 
 Voorbeeld: een factuur uit een eerdere, al afgesloten periode kan niet zomaar worden afgeletterd
@@ -62,7 +64,7 @@ tegen een bankregel in de huidige periode.
 
 Alleen Debiteuren (type 20) en Crediteuren (type 22) kunnen via MatchSets worden afgeletterd.
 Koersverschillen- en kostenrekeningen (elk ander GLAccount.Type dan 20/22) kunnen niet worden
-afgeletterd — die staan gewoon in de boekhouding zonder koppeling.
+afgeletterd, die staan gewoon in de boekhouding zonder koppeling.
 
 ---
 
@@ -72,10 +74,8 @@ afgeletterd — die staan gewoon in de boekhouding zonder koppeling.
   Check altijd of het af te schrijven bedrag overeenkomt met de factuur + opslag.
 - **Valutabedragen**: het PDF toont vaak USD-bedrag + EUR-equivalent. Gebruik altijd
   het EUR-bedrag voor `AmountFC`.
-- **Verrekening vorig overzicht**: verschijnt als positief bedrag bovenaan het afschrift.
-  Is het vorige openstaande saldo dat nu verrekend wordt — **niet boeken als BankEntryLine**.
-- **Meerdere deelregels, één factuur** (bijv. een advertentieplatform dat op verschillende data
-  afschrijft): boek elke datum als aparte BankEntryLine op de crediteurenrekening (Type 22),
+- **Meerdere deelregels, één factuur** (bijvoorbeeld een advertentieplatform dat op verschillende
+  data afschrijft): boek elke datum als aparte BankEntryLine op de crediteurenrekening (Type 22),
   match ze samen (N:1) via MatchSets.
 
 ---
@@ -85,19 +85,20 @@ afgeletterd — die staan gewoon in de boekhouding zonder koppeling.
 ```
 □ PDF geüpload en alle transacties geëxtraheerd
 □ Verrekening vorig overzicht geïdentificeerd (niet als BankEntryLine; sluit aan op vorig slotsaldo)
-□ Koersopslagen als aparte regels gemarkeerd (→ koersverschillenrekening)
-□ Regels zonder factuur geïdentificeerd (→ Fase 2.5, gebruiker beslist per regel)
+□ Koersopslagen als aparte regels gemarkeerd (naar koersverschillenrekening)
+□ Regels zonder factuur geïdentificeerd (naar Fase 2.5, gebruiker beslist per regel)
 □ OpeningBalance bepaald (chronologisch laatste ClosingBalance of 0)
 □ ClosingBalance berekend (OpeningBalance + som alle lines)
 □ Crediteurenrekening afgeleid via Type 22; koersverschillenrekening door gebruiker opgegeven
 □ GLAccount GUIDs opgehaald (crediteuren, koersverschillen, evt. kostenrek)
 □ Leverancier GUIDs opgehaald
+□ Openstaande facturen volledig opgehaald (alle pagina's via page_token, niet afgekapt op 60)
 □ Facturen gematcht aan bankregels (incl. tolerantie bij valutaverschil)
 □ BankEntry POST geslaagd (EntryID genoteerd)
 □ TransactionLine IDs bankregels opgehaald (filter EntryNumber + GLAccount-GUID crediteuren)
 □ TransactionLine IDs facturen opgehaald (per EntryNumber)
 □ MatchSets uitgevoerd per factuur
 □ N:1 matches afgehandeld
-□ Koersverschillen via write_off naar de koersverschillenrekening (richting/type geverifieerd)
+□ Koersverschillen via write_off naar de koersverschillenrekening (zonder handmatig type)
 □ Verificatie: openstaande Payments controle
 ```

@@ -2,7 +2,7 @@
 
 ## Wat is OffsetID?
 
-OffsetID is een GUID-veld op `TransactionLines` dat een boekingsregel koppelt aan een tegenpost. De interpretatie verschilt per context — een gevulde OffsetID betekent NIET automatisch dat een post is afgeletterd.
+OffsetID is een GUID-veld op `TransactionLines` dat een boekingsregel koppelt aan een tegenpost. De interpretatie verschilt per context: een gevulde OffsetID betekent NIET automatisch dat een post is afgeletterd.
 
 ## Twee Soorten OffsetID
 
@@ -34,11 +34,12 @@ Bankentry 26200012:
 
 Meest betrouwbaar en eenvoudigst. Geen interpretatie van OffsetID nodig.
 
+**Tool: `read_operation`**
+
 ```json
 {
   "service": "Cashflow",
   "entity": "Receivables",
-  "operation": "GET",
   "filters": {"InvoiceNumber": "{factuurnummer}"},
   "select": "ID,AccountName,InvoiceNumber,AmountDC,Description"
 }
@@ -56,11 +57,12 @@ Voor crediteuren: gebruik `Cashflow/Payments` (niet `Payables`).
 
 Controleer de debiteurenregel op het **verkoopdagboek**, NIET op het bankdagboek:
 
+**Tool: `read_operation`**
+
 ```json
 {
   "service": "Financialtransaction",
   "entity": "TransactionLines",
-  "operation": "GET",
   "filters": {
     "JournalCode": "{verkoopdagboek}",
     "GLAccountCode": "{debiteurenCode}",
@@ -75,11 +77,11 @@ Controleer de debiteurenregel op het **verkoopdagboek**, NIET op het bankdagboek
 
 ### Methode 3: OffsetID op Bankzijde (ONBETROUWBAAR)
 
-De debiteurenregel op het bankdagboek heeft ALTIJD een OffsetID — deze wijst naar de bankrekening-regel van dezelfde entry. Dit is NIET bruikbaar als afletter-indicator.
+De debiteurenregel op het bankdagboek heeft ALTIJD een OffsetID; deze wijst naar de bankrekening-regel van dezelfde entry. Dit is NIET bruikbaar als afletter-indicator.
 
 ## Matching Patronen
 
-### 1:1 Betaling — Niet Afgeletterd
+### 1:1 Betaling, niet afgeletterd
 
 ```
 Bankentry:
@@ -91,7 +93,7 @@ Verkoopfactuur:
   [Omzet]      (ID=DDD, OffsetID=CCC)
 ```
 
-### 1:1 Betaling — Afgeletterd
+### 1:1 Betaling, afgeletterd
 
 ```
 Bankentry:
@@ -103,7 +105,7 @@ Verkoopfactuur:
   [Omzet]      (ID=DDD, OffsetID=CCC)
 ```
 
-### Creditnota — Afgeletterd tegen Factuur
+### Creditnota, afgeletterd tegen factuur
 
 ```
 Verkoopfactuur:
@@ -115,7 +117,7 @@ Creditnota:
 
 Beide zijn TransactionLine type bij MatchSets (beide komen van het verkoopdagboek).
 
-### N:1 Betaling — Meerdere Facturen
+### N:1 Betaling, meerdere facturen
 
 ```
 Bankentry:
