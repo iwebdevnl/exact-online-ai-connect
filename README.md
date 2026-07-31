@@ -102,6 +102,12 @@ See [TRUST.md](TRUST.md), [PRIVACY.md](PRIVACY.md), and [SECURITY.md](SECURITY.m
 
 Not available (not exposed by the Exact Online API): closing periods (Afsluiten) and SEPA direct-debit batches.
 
+## License
+
+The files in this repository are MIT licensed (see [LICENSE](LICENSE)), except
+the brand material in `assets/`. The hosted service itself is proprietary and is
+not covered by that license. [NOTICE](NOTICE) sets out the exact scope.
+
 ## Support
 
 Product page: https://www.iwebdevelopment.com/exact-online/ai-mcp-koppeling

@@ -1,11 +1,22 @@
-Exact Online AI Connect: connection files and documentation
+Exact Online AI Connect
 Copyright (c) 2026 iWebDevelopment
 
-The MIT license in this repository covers ONLY the configuration files and
-documentation contained here. The hosted Exact Online AI Connect MCP server, its
-source code, and the service it provides are proprietary to iWebDevelopment
-and are NOT licensed under MIT. Use of the service is governed by
-iWebDevelopment's Algemene Voorwaarden (AV).
+What the MIT license covers
+---------------------------
+The MIT license in LICENSE applies to the contents of this repository: the
+plugin manifests, slash commands, skills, scripts and documentation. One
+exception applies. The files in assets/ (logo, demo recording, social preview)
+are brand material of iWebDevelopment. They are not covered by the MIT license
+and may not be reused, redistributed or modified without written permission.
 
-"Exact", "Exact Online", "Twinfield", and "AFAS" are trademarks of their
-respective owners. See TRADEMARKS.md.
+What it does not cover
+----------------------
+The hosted Exact Online AI Connect MCP server, its source code, and the service
+it provides are proprietary to iWebDevelopment and are not licensed under MIT.
+Use of the service is governed by iWebDevelopment's Algemene Voorwaarden (AV).
+
+Trademarks
+----------
+The MIT license grants no right to use the name, logo or trademarks of
+iWebDevelopment. "Exact", "Exact Online", "Twinfield", and "AFAS" are
+trademarks of their respective owners. See TRADEMARKS.md.
